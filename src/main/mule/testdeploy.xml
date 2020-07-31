@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="88a6434a-d25d-4a44-ad09-6377db462da1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="Copy_of_Copy_of_DeltaFlight" doc:id="030d6a7f-a1fc-4339-84a8-872f9dca9ef5" >
+		<http:listener doc:name="Listener" doc:id="d6b45d5d-a168-4761-a279-e144cfd42981" config-ref="HTTP_Listener_config" path="/delta" />
+		<ee:transform doc:name="Transform Message" doc:id="bf96c5c2-2c70-4631-b2e7-c24ae6fd15b8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://schemas.xmlsoap.org/soap/envelope/
+ns ns01 http://soap.training.mulesoft.com/
+---
+{
+	ns0#Envelope: {
+		ns0#Header: null,
+		ns0#Body: {
+			ns01#findFlight: {
+				destination: payload.destination
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Delta Flight Request" doc:id="d0a8be88-457d-4b8b-8e6b-a5b32f429914" url="http://mu.learn.mulesoft.com/delta" >
+			<reconnect />
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="60828259-0b16-4fb0-a704-53833ef1ff17" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fc85a73a-5e8d-4ccc-8f15-98aa6e6260ed" message="#[payload]" />
+	</flow>
+</mule>
